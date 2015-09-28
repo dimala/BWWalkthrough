@@ -25,13 +25,13 @@ SOFTWARE.
 
 import UIKit
 
-enum WalkthroughAnimationType:String{
+public enum WalkthroughAnimationType:String{
     case Linear = "Linear"
     case Curve = "Curve"
     case Zoom = "Zoom"
     case InOut = "InOut"
     
-    init(_ name:String){
+    public init(_ name:String){
         
         if let tempSelf = WalkthroughAnimationType(rawValue: name){
             self = tempSelf
@@ -41,7 +41,7 @@ enum WalkthroughAnimationType:String{
     }
 }
 
-class BWWalkthroughPageViewController: UIViewController, BWWalkthroughPage {
+public class BWWalkthroughPageViewController: UIViewController, BWWalkthroughPage {
     
     private var animation:WalkthroughAnimationType = .Linear
     private var subsWeights:[CGPoint] = Array()
@@ -49,9 +49,9 @@ class BWWalkthroughPageViewController: UIViewController, BWWalkthroughPage {
     
     // MARK: Inspectable Properties
     // Edit these values using the Attribute inspector or modify directly the "User defined runtime attributes" in IB
-    @IBInspectable var speed:CGPoint = CGPoint(x: 0.0, y: 0.0);            // Note if you set this value via Attribute inspector it can only be an Integer (change it manually via User defined runtime attribute if you need a Float)
-    @IBInspectable var speedVariance:CGPoint = CGPoint(x: 0.0, y: 0.0)     // Note if you set this value via Attribute inspector it can only be an Integer (change it manually via User defined runtime attribute if you need a Float)
-    @IBInspectable var animationType:String {
+    @IBInspectable public var speed:CGPoint = CGPoint(x: 0.0, y: 0.0);            // Note if you set this value via Attribute inspector it can only be an Integer (change it manually via User defined runtime attribute if you need a Float)
+    @IBInspectable public var speedVariance:CGPoint = CGPoint(x: 0.0, y: 0.0)     // Note if you set this value via Attribute inspector it can only be an Integer (change it manually via User defined runtime attribute if you need a Float)
+    @IBInspectable public var animationType:String {
         set(value){
             self.animation = WalkthroughAnimationType(rawValue: value)!
         }
@@ -59,19 +59,19 @@ class BWWalkthroughPageViewController: UIViewController, BWWalkthroughPage {
             return self.animation.rawValue
         }
     }
-    @IBInspectable var animateAlpha:Bool = false
-    @IBInspectable var staticTags:String {                                 // A comma separated list of tags that you don't want to animate during the transition/scroll 
+    @IBInspectable public var animateAlpha:Bool = false
+    @IBInspectable public var staticTags:String {                                 // A comma separated list of tags that you don't want to animate during the transition/scroll
         set(value){
-            self.notAnimatableViews = map(split(value){$0 == ","}){String($0).toInt()!}
+            self.notAnimatableViews = value.characters.split{$0 == ","}.map { String($0) }.map{Int(String($0))!}
         }
         get{
-            return ",".join(map(notAnimatableViews){String($0)})
+            return notAnimatableViews.map{String($0)}.joinWithSeparator(",")
         }
     }
     
     // MARK: BWWalkthroughPage Implementation
 
-    override func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
         self.view.layer.masksToBounds = true
         subsWeights = Array()
@@ -79,14 +79,14 @@ class BWWalkthroughPageViewController: UIViewController, BWWalkthroughPage {
         for v in view.subviews{
             speed.x += speedVariance.x
             speed.y += speedVariance.y
-            if !contains(notAnimatableViews, v.tag){
+            if !notAnimatableViews.contains(v.tag){
                 subsWeights.append(speed)
             }
         }
         
     }
     
-    func walkthroughDidScroll(position: CGFloat, offset: CGFloat) {
+    public func walkthroughDidScroll(position: CGFloat, offset: CGFloat) {
         
         for(var i = 0; i < subsWeights.count ;i++){
             
@@ -117,7 +117,7 @@ class BWWalkthroughPageViewController: UIViewController, BWWalkthroughPage {
     // MARK: Animations (WIP)
     
     private func animationAlpha(index:Int, var _ offset:CGFloat){
-        let cView = view.subviews[index] as! UIView
+        let cView = view.subviews[index] 
         
         if(offset > 1.0){
             offset = 1.0 + (1.0 - offset)
@@ -127,7 +127,7 @@ class BWWalkthroughPageViewController: UIViewController, BWWalkthroughPage {
     
     private func animationCurve(index:Int, _ offset:CGFloat){
         var transform = CATransform3DIdentity
-        var x:CGFloat = (1.0 - offset) * 10
+        let x:CGFloat = (1.0 - offset) * 10
         transform = CATransform3DTranslate(transform, (pow(x,3) - (x * 25)) * subsWeights[index].x, (pow(x,3) - (x * 20)) * subsWeights[index].y, 0 )
         applyTransform(index, transform: transform)
     }
@@ -139,14 +139,14 @@ class BWWalkthroughPageViewController: UIViewController, BWWalkthroughPage {
         if(tmpOffset > 1.0){
             tmpOffset = 1.0 + (1.0 - tmpOffset)
         }
-        var scale:CGFloat = (1.0 - tmpOffset)
+        let scale:CGFloat = (1.0 - tmpOffset)
         transform = CATransform3DScale(transform, 1 - scale , 1 - scale, 1.0)
         applyTransform(index, transform: transform)
     }
     
     private func animationLinear(index:Int, _ offset:CGFloat){
         var transform = CATransform3DIdentity
-        var mx:CGFloat = (1.0 - offset) * 100
+        let mx:CGFloat = (1.0 - offset) * 100
         transform = CATransform3DTranslate(transform, mx * subsWeights[index].x, mx * subsWeights[index].y, 0 )
         applyTransform(index, transform: transform)
     }
@@ -165,7 +165,7 @@ class BWWalkthroughPageViewController: UIViewController, BWWalkthroughPage {
     
     private func applyTransform(index:Int, transform:CATransform3D){
         if let subview = view.subviews[index] as? UIView{
-            if !contains(notAnimatableViews, subview.tag){
+            if !notAnimatableViews.contains(subview.tag){
                 view.subviews[index].layer.transform = transform
             }
         }

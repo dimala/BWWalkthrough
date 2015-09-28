@@ -32,7 +32,7 @@ This delegate performs basic operations such as dismissing the Walkthrough or ca
 Probably the Walkthrough is presented by this delegate.
 **/
 
-@objc protocol BWWalkthroughViewControllerDelegate{
+@objc public protocol BWWalkthroughViewControllerDelegate{
     
     @objc optional func walkthroughCloseButtonPressed()              // If the skipRequest(sender:) action is connected to a button, this function is called when that button is pressed.
     @objc optional func walkthroughNextButtonPressed()               //
@@ -46,7 +46,7 @@ Walkthrough Page:
 The walkthrough page represents any page added to the Walkthrough.
 At the moment it's only used to perform custom animations on didScroll.
 **/
-@objc protocol BWWalkthroughPage{
+@objc public protocol BWWalkthroughPage{
     // While sliding to the "next" slide (from right to left), the "current" slide changes its offset from 1.0 to 2.0 while the "next" slide changes it from 0.0 to 1.0
     // While sliding to the "previous" slide (left to right), the current slide changes its offset from 1.0 to 0.0 while the "previous" slide changes it from 2.0 to 1.0
     // The other pages update their offsets whith values like 2.0, 3.0, -2.0... depending on their positions and on the status of the walkthrough
@@ -56,36 +56,30 @@ At the moment it's only used to perform custom animations on didScroll.
 }
 
 
-@objc class BWWalkthroughViewController: UIViewController, UIScrollViewDelegate{
+@objc public class BWWalkthroughViewController: UIViewController, UIScrollViewDelegate{
     
     // MARK: - Public properties -
     
-    weak var delegate:BWWalkthroughViewControllerDelegate?
+    public weak var delegate:BWWalkthroughViewControllerDelegate?
     
     // TODO: If you need a page control, next or prev buttons add them via IB and connect them with these Outlets
-    @IBOutlet var pageControl:UIPageControl?
-    @IBOutlet var nextButton:UIButton?
-    @IBOutlet var prevButton:UIButton?
-    @IBOutlet var closeButton:UIButton?
+    @IBOutlet public var pageControl:UIPageControl?
+    @IBOutlet public var nextButton:UIButton?
+    @IBOutlet public var prevButton:UIButton?
+    @IBOutlet public var closeButton:UIButton?
     
-    var currentPage:Int{    // The index of the current page (readonly)
-        get{
-            let page = Int((scrollview.contentOffset.x / view.bounds.size.width))
-            return page
-        }
+    public var currentPage:Int{    // The index of the current page (readonly)
+        let page = Int((scrollview.contentOffset.x / view.bounds.size.width))
+        return page
     }
     
     var currentViewController:UIViewController{ //the controller for the currently visible page
-        get{
-            let currentPage = self.currentPage;
-            return controllers[currentPage];
-        }
+        let currentPage = self.currentPage;
+        return controllers[currentPage];
     }
     
     var numberOfPages:Int{ //the total number of pages in the walkthrough
-        get{
-            return self.controllers.count;
-        }
+        return self.controllers.count;
     }
     
     
@@ -93,12 +87,12 @@ At the moment it's only used to perform custom animations on didScroll.
     
     private let scrollview:UIScrollView!
     private var controllers:[UIViewController]!
-    private var lastViewConstraint:NSArray?
+    private var lastViewConstraint:[NSLayoutConstraint]?
     
     
     // MARK: - Overrides -
     
-    required init(coder aDecoder: NSCoder) {
+    required public init?(coder aDecoder: NSCoder) {
         // Setup the scrollview
         scrollview = UIScrollView()
         scrollview.showsHorizontalScrollIndicator = false
@@ -117,7 +111,7 @@ At the moment it's only used to perform custom animations on didScroll.
         super.init(nibName: nibNameOrNil, bundle: nibBundleOrNil)
     }
     
-    override func viewDidLoad() {
+    override public func viewDidLoad() {
         super.viewDidLoad()
         
         // Initialize UI Elements
@@ -127,18 +121,18 @@ At the moment it's only used to perform custom animations on didScroll.
         // Scrollview
         
         scrollview.delegate = self
-        scrollview.setTranslatesAutoresizingMaskIntoConstraints(false)
+        scrollview.translatesAutoresizingMaskIntoConstraints = false
         
         view.insertSubview(scrollview, atIndex: 0) //scrollview is inserted as first view of the hierarchy
         
         // Set scrollview related constraints
         
-        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|-0-[scrollview]-0-|", options:nil, metrics: nil, views: ["scrollview":scrollview]))
-        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|-0-[scrollview]-0-|", options:nil, metrics: nil, views: ["scrollview":scrollview]))
+        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|-0-[scrollview]-0-|", options:[], metrics: nil, views: ["scrollview":scrollview]))
+        view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|-0-[scrollview]-0-|", options:[], metrics: nil, views: ["scrollview":scrollview]))
         
     }
     
-    override func viewWillAppear(animated: Bool) {
+    override public func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated);
         
         pageControl?.numberOfPages = controllers.count
@@ -174,7 +168,7 @@ At the moment it's only used to perform custom animations on didScroll.
         delegate?.walkthroughCloseButtonPressed?()
     }
     
-    func pageControlDidTouch(){
+    public func pageControlDidTouch(){
 
         if let pc = pageControl{
             gotoPage(pc.currentPage)
@@ -195,13 +189,13 @@ At the moment it's only used to perform custom animations on didScroll.
     Add a new page to the walkthrough. 
     To have information about the current position of the page in the walkthrough add a UIVIewController which implements BWWalkthroughPage    
     */
-    func addViewController(vc:UIViewController)->Void{
+    public func addViewController(vc:UIViewController)->Void{
         
         controllers.append(vc)
         
         // Setup the viewController view
         
-        vc.view.setTranslatesAutoresizingMaskIntoConstraints(false)
+        vc.view.translatesAutoresizingMaskIntoConstraints = false
         scrollview.addSubview(vc.view)
         
         // Constraints
@@ -210,14 +204,14 @@ At the moment it's only used to perform custom animations on didScroll.
         
         // - Generic cnst
         
-        vc.view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:[view(h)]", options:nil, metrics: metricDict, views: ["view":vc.view]))
-        vc.view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:[view(w)]", options:nil, metrics: metricDict, views: ["view":vc.view]))
-        scrollview.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|-0-[view]|", options:nil, metrics: nil, views: ["view":vc.view,]))
+        vc.view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:[view(h)]", options:[], metrics: metricDict, views: ["view":vc.view]))
+        vc.view.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:[view(w)]", options:[], metrics: metricDict, views: ["view":vc.view]))
+        scrollview.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("V:|-0-[view]|", options:[], metrics: nil, views: ["view":vc.view,]))
         
         // cnst for position: 1st element
         
         if controllers.count == 1{
-            scrollview.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|-0-[view]", options:nil, metrics: nil, views: ["view":vc.view,]))
+            scrollview.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:|-0-[view]", options:[], metrics: nil, views: ["view":vc.view,]))
             
             // cnst for position: other elements
             
@@ -226,13 +220,13 @@ At the moment it's only used to perform custom animations on didScroll.
             let previousVC = controllers[controllers.count-2]
             let previousView = previousVC.view;
             
-            scrollview.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:[previousView]-0-[view]", options:nil, metrics: nil, views: ["previousView":previousView,"view":vc.view]))
+            scrollview.addConstraints(NSLayoutConstraint.constraintsWithVisualFormat("H:[previousView]-0-[view]", options:[], metrics: nil, views: ["previousView":previousView,"view":vc.view]))
             
             if let cst = lastViewConstraint{
-                scrollview.removeConstraints(cst as [AnyObject])
+                scrollview.removeConstraints(cst)
             }
-            lastViewConstraint = NSLayoutConstraint.constraintsWithVisualFormat("H:[view]-0-|", options:nil, metrics: nil, views: ["view":vc.view])
-            scrollview.addConstraints(lastViewConstraint! as [AnyObject])
+            lastViewConstraint = NSLayoutConstraint.constraintsWithVisualFormat("H:[view]-0-|", options:[], metrics: nil, views: ["view":vc.view])
+            scrollview.addConstraints(lastViewConstraint!)
         }
     }
 
@@ -267,7 +261,7 @@ At the moment it's only used to perform custom animations on didScroll.
     
     // MARK: - Scrollview Delegate -
     
-    func scrollViewDidScroll(sv: UIScrollView) {
+    public func scrollViewDidScroll(sv: UIScrollView) {
         
         for var i=0; i < controllers.count; i++ {
             
@@ -291,11 +285,11 @@ At the moment it's only used to perform custom animations on didScroll.
         }
     }
     
-    func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
+    public func scrollViewDidEndDecelerating(scrollView: UIScrollView) {
         updateUI()
     }
     
-    func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
+    public func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
         updateUI()
     }
     
