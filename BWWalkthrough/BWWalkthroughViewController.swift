@@ -78,7 +78,7 @@ At the moment it's only used to perform custom animations on didScroll.
         return controllers[currentPage];
     }
     
-    var numberOfPages:Int{ //the total number of pages in the walkthrough
+    public var numberOfPages:Int{ //the total number of pages in the walkthrough
         return self.controllers.count;
     }
     
